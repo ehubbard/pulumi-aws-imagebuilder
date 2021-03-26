@@ -1,0 +1,3 @@
+name: aws-imagebuilder-pulumi
+runtime: nodejs
+description: An attempt to work with the Pulumi AWS Imagebuilder module
