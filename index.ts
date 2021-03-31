@@ -1,6 +1,5 @@
 import * as pulumi from "@pulumi/pulumi";
 import * as aws from "@pulumi/aws";
-import * as fs from "fs";
 
 // Upload a YAML build config as an S3 resource
 const yamlBuildBucket = new aws.s3.Bucket("build-config");
@@ -10,8 +9,8 @@ const bucketObject = new aws.s3.BucketObject(
     {
         acl: "public-read",
         bucket: yamlBuildBucket,
-        content: fs.readFileSync("build-config.yaml").toString(),
-        contentType: "text/x-yaml"
+        contentType: "text/x-yaml",
+        source: new pulumi.asset.FileAsset("build-config.yaml")
     }
 );
 
