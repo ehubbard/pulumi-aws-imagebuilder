@@ -40,17 +40,27 @@ const testImageRecipe = new aws.imagebuilder.ImageRecipe(
     }
 )
 
+// Create an infrastructure configuration. The only required attribute is the name of an AWS IAM role
+const testInfrastructureConfiguration = new aws.imagebuilder.InfrastructureConfiguration(
+    "testInfrastructureConfiguration",
+    {
+        instanceProfileName: "test-user"
+    }
+)
+
 // Create image pipeline using above image recipe and separately created infrastructure config
 const testImagePipeline = new aws.imagebuilder.ImagePipeline(
     "testPulumiImagePipeline",
     {
         imageRecipeArn: testImageRecipe.arn,
-        infrastructureConfigurationArn: "arn:aws:imagebuilder:us-east-1:271428618339:infrastructure-configuration/first-infra-config",
+        infrastructureConfigurationArn: testInfrastructureConfiguration.arn,
         schedule: {
             scheduleExpression: "cron(0 0 ? * 7 *)"
         }
     }
 );
 
+
+
 // Export image pipeline arn
-export const imageRecipeArn = testImagePipeline.arn;
+export const imagePipelineArn = testImagePipeline.arn;
