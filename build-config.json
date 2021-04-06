@@ -1,0 +1,21 @@
+{
+	"name": "testTrivialBuildComponent",
+	"description": "Run trivial powershell commands",
+	"schemaVersion": 1,
+	"phases": [
+		{
+			"name": "build",
+			"steps": [
+				{
+					"name": "trivialPowershellCommands",
+					"action": "ExecutePowerShell",
+					"inputs": {
+						"commands": [
+							"dir"
+						]
+					}
+				}
+			]
+		}
+	]
+}

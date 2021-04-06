@@ -1,30 +1,16 @@
 import * as pulumi from "@pulumi/pulumi";
 import * as aws from "@pulumi/aws";
 
-// Upload a YAML build config as an S3 resource
-const yamlBuildBucket = new aws.s3.Bucket("build-config");
-const buildBucketName = "testBuildConfig";
-const bucketObject = new aws.s3.BucketObject(
-    buildBucketName,
-    {
-        acl: "public-read",
-        bucket: yamlBuildBucket,
-        contentType: "text/x-yaml",
-        source: new pulumi.asset.FileAsset("build-config.yaml")
-    }
-);
-
-// Export bucket uri
-export const buildBucketUri = pulumi.interpolate`s3://${yamlBuildBucket.id}/${buildBucketName}`;
+// load in build config JSON
+const buildConfig = require("./build-config.json");
 
 // Create build component
 const testBuildComponent = new aws.imagebuilder.Component(
-    "testBuildComponent",
+    "testTrivialBuildComponent",
     {
         platform: "Windows",
         version: "0.1.0",
-        // can specify exactly one out of data and uri attributes. data should be in YAML format; uri should be an S3 uri to a component containing YAML spec)
-        uri: buildBucketUri
+        data: JSON.stringify(buildConfig)
     }
 );
 
@@ -53,14 +39,9 @@ const testImagePipeline = new aws.imagebuilder.ImagePipeline(
     "testPulumiImagePipeline",
     {
         imageRecipeArn: testImageRecipe.arn,
-        infrastructureConfigurationArn: testInfrastructureConfiguration.arn,
-        schedule: {
-            scheduleExpression: "cron(0 0 ? * 7 *)"
-        }
+        infrastructureConfigurationArn: testInfrastructureConfiguration.arn
     }
 );
-
-
 
 // Export image pipeline arn
 export const imagePipelineArn = testImagePipeline.arn;
