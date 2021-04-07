@@ -1,5 +1,6 @@
 import * as pulumi from "@pulumi/pulumi";
 import * as aws from "@pulumi/aws";
+import * as random from "@pulumi/random";
 
 // load in build config JSON
 const buildConfig = require("./build-config.json");
@@ -36,7 +37,7 @@ const testInfrastructureConfiguration = new aws.imagebuilder.InfrastructureConfi
 
 // Create image pipeline using above image recipe and separately created infrastructure config
 const testImagePipeline = new aws.imagebuilder.ImagePipeline(
-    "testPulumiImagePipeline",
+    "testImagePipeline",
     {
         imageRecipeArn: testImageRecipe.arn,
         infrastructureConfigurationArn: testInfrastructureConfiguration.arn
@@ -45,3 +46,25 @@ const testImagePipeline = new aws.imagebuilder.ImagePipeline(
 
 // Export image pipeline arn
 export const imagePipelineArn = testImagePipeline.arn;
+
+// Generate a UUID to use as client token for image pipeline execution request
+const pipelineExecClientToken = new random.RandomString("pipelineExecClientToken", {
+    length: 32,
+    special: false
+});
+
+// Trigger pipeline execution once the pipeline exists and client token has been generated. Use pulumi.all().apply() to enable async operation
+pulumi
+    .all([testImagePipeline.arn, pipelineExecClientToken.result])
+    .apply(([imagePipelineArn, clientToken]) => {
+        (new aws.sdk.Imagebuilder())
+        .startImagePipelineExecution(
+            {
+                imagePipelineArn,
+                clientToken
+            },
+            err => console.log(err)
+        );
+        console.log("imagePipelineArn:", imagePipelineArn);
+        console.log("clientToken:", clientToken);
+    });
